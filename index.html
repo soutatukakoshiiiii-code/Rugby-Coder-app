@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Rugby Analyst M3</title>
+    <title>Rugby Analyst M3 - Updated</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -19,71 +19,52 @@
             background-color: var(--md-sys-color-surface);
             color: var(--md-sys-color-on-surface);
             font-family: 'Roboto', sans-serif;
-            margin: 0; padding: 24px;
+            margin: 0; padding: 20px;
             display: flex; flex-direction: column; align-items: center;
-            overflow: hidden;
-            -webkit-user-select: none; /* iPhoneでの長押し選択を防止 */
+            -webkit-user-select: none;
         }
 
-        .sync-btn {
-            width: 100%; height: 72px;
-            border-radius: 36px;
-            border: none;
-            background-color: var(--md-sys-color-primary);
-            color: var(--md-sys-color-on-primary);
-            font-weight: 700; font-size: 20px;
-            margin-bottom: 24px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
-            cursor: pointer;
+        .header-btns { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+
+        .top-btn {
+            height: 60px; border-radius: 30px; border: none;
+            font-weight: 700; font-size: 16px; cursor: pointer;
         }
 
-        .sync-btn.active { background-color: #30d158; color: black; }
+        #startBtn { background-color: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary); }
+        #startBtn.active { background-color: #30d158; color: black; }
+        #syncBtn { background-color: #0a84ff; color: white; }
 
-        #log {
-            font-size: 16px; margin-bottom: 20px;
-            height: 24px; color: var(--md-sys-color-on-surface);
-            opacity: 0.9;
-        }
+        #log { font-size: 14px; margin-bottom: 15px; opacity: 0.8; height: 20px; }
 
-        .grid {
-            display: grid; grid-template-columns: 1fr 1fr;
-            gap: 16px; width: 100%;
-        }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; width: 100%; }
 
         .tag-btn {
-            height: 120px;
-            border-radius: 28px;
-            border: none;
+            height: 110px; border-radius: 24px; border: none;
             background-color: var(--md-sys-color-secondary-container);
             color: var(--md-sys-color-on-secondary-container);
-            font-size: 32px; font-weight: 500;
-            transition: all 0.2s ease;
-            cursor: pointer;
-            -webkit-tap-highlight-color: transparent;
+            font-size: 32px; font-weight: 500; transition: all 0.2s ease;
         }
 
         .tag-btn.active {
-            background-color: #ff9f0a;
-            color: black;
-            border-radius: 16px;
-            box-shadow: 0 0 25px rgba(255, 159, 10, 0.6);
+            background-color: #ff9f0a; color: black;
+            box-shadow: 0 0 20px rgba(255, 159, 10, 0.6);
         }
 
-        .footer { width: 100%; margin-top: 40px; }
-        
+        .footer { width: 100%; margin-top: 30px; }
         .end-btn {
-            width: 100%; height: 64px;
-            border-radius: 32px;
-            border: 1px solid #4A4458;
-            background-color: #2c2c2e;
-            color: var(--md-sys-color-primary);
-            font-weight: 700; font-size: 18px;
-            cursor: pointer;
+            width: 100%; height: 60px; border-radius: 30px;
+            border: 1px solid #4A4458; background-color: #2c2c2e;
+            color: var(--md-sys-color-primary); font-weight: 700;
         }
     </style>
 </head>
 <body>
-    <button id="syncBtn" class="sync-btn">START / SYNC</button>
+    <div class="header-btns">
+        <button id="startBtn" class="top-btn" onclick="startSession()">START REC</button>
+        <button id="syncBtn" class="top-btn" onclick="sendSync()">SYNC (-1s)</button>
+    </div>
+    
     <div id="log">Ready</div>
     
     <div class="grid">
@@ -96,71 +77,69 @@
     </div>
 
     <div class="footer">
-        <button id="endBtn" class="end-btn" onclick="endSession()">END & SAVE XML</button>
+        <button class="end-btn" onclick="endSession()">END & SAVE XML</button>
     </div>
 
 <script>
-    let syncTime = null;
+    let startTime = null;
     let instances = [];
     let activeTags = {}; 
 
-    const syncBtn = document.getElementById('syncBtn');
+    const startBtn = document.getElementById('startBtn');
     const log = document.getElementById('log');
 
-    // SYNCボタンの処理
-    syncBtn.onclick = function() {
-        syncTime = Date.now();
-        this.innerText = "RECORDING...";
-        this.classList.add('active');
-        log.innerText = "Sync point set. Start tagging.";
-        if ('vibrate' in navigator) navigator.vibrate(100);
-    };
+    // セッション全体の開始（動画の0秒地点に合わせるためのトリガー）
+    function startSession() {
+        startTime = Date.now();
+        startBtn.innerText = "RECORDING";
+        startBtn.classList.add('active');
+        log.innerText = "Session Started.";
+        vibrate(100);
+    }
 
-    // タグボタンのトグル処理
+    // SYNCボタン：押した瞬間に1秒間のインスタンスを作成
+    function sendSync() {
+        if (!startTime) { log.innerText = "⚠️ START REC FIRST!"; return; }
+        const nowRel = (Date.now() - startTime) / 1000;
+        const startRel = Math.max(0, nowRel - 1);
+        
+        instances.push({ 
+            code: "SYNC", 
+            start: startRel.toFixed(2), 
+            end: nowRel.toFixed(2) 
+        });
+        log.innerText = "SYNC Point Captured";
+        vibrate([50, 30, 50]);
+    }
+
     function toggleTag(id) {
-        if (!syncTime) { 
-            log.innerText = "⚠️ SYNC FIRST!"; 
-            if ('vibrate' in navigator) navigator.vibrate([50, 50, 50]);
-            return; 
-        }
+        if (!startTime) { log.innerText = "⚠️ START REC FIRST!"; return; }
         
         const btn = document.getElementById('btn-' + id);
-        const now = Date.now();
-        const relTime = (now - syncTime) / 1000;
+        const nowRel = (Date.now() - startTime) / 1000;
 
-        // すでに計測中の場合（終了処理）
         if (activeTags[id] !== undefined) {
             const startRel = activeTags[id];
             instances.push({ 
                 code: "Button " + id, 
                 start: startRel.toFixed(2), 
-                end: relTime.toFixed(2) 
+                end: nowRel.toFixed(2) 
             });
             delete activeTags[id];
             btn.classList.remove('active');
             log.innerText = "Tag " + id + " Saved";
-        } 
-        // 新しく計測を開始する場合
-        else {
-            const startRel = Math.max(0, relTime - 5); // リードタイム5秒
-            activeTags[id] = startRel;
+        } else {
+            // 押した時間より5秒前にリードタイムを設定
+            activeTags[id] = Math.max(0, nowRel - 5);
             btn.classList.add('active');
-            log.innerText = "Tag " + id + " Active";
+            log.innerText = "Tag " + id + " Active (Lead: 5s)";
         }
-        
-        if ('vibrate' in navigator) navigator.vibrate(60);
+        vibrate(60);
     }
 
-    // 終了とXML保存
     function endSession() {
-        if (!syncTime) {
-            log.innerText = "No session started.";
-            return;
-        }
-        
-        const nowRel = (Date.now() - syncTime) / 1000;
-        
-        // 進行中のタグがあれば強制終了して追加
+        if (!startTime) return;
+        const nowRel = (Date.now() - startTime) / 1000;
         for (let id in activeTags) {
             instances.push({ 
                 code: "Button " + id, 
@@ -168,44 +147,35 @@
                 end: nowRel.toFixed(2) 
             });
         }
+        
+        generateXML();
+        log.innerText = "Exported " + instances.length + " tags";
+    }
 
-        if (instances.length === 0) {
-            log.innerText = "No data to save.";
-            return;
-        }
+    function generateXML() {
+        let xml = '<?xml version="1.0" encoding="UTF-8"?>\n<file>\n  <ALL_INSTANCES>\n';
+        instances.forEach((inst, i) => {
+            xml += `    <instance>\n      <ID>${i+1}</ID>\n      <start>${inst.start}</start>\n      <end>${inst.end}</end>\n      <code>${inst.code}</code>\n    </instance>\n`;
+        });
+        xml += '  </ALL_INSTANCES>\n</file>';
 
-        // XML文字列の組み立て
-        let xmlContent = '<?xml version="1.0" encoding="UTF-8"?>\n<file>\n  <ALL_INSTANCES>\n';
-        for (let i = 0; i < instances.length; i++) {
-            let inst = instances[i];
-            xmlContent += '    <instance>\n';
-            xmlContent += '      <ID>' + (i + 1) + '</ID>\n';
-            xmlContent += '      <start>' + inst.start + '</start>\n';
-            xmlContent += '      <end>' + inst.end + '</end>\n';
-            xmlContent += '      <code>' + inst.code + '</code>\n';
-            xmlContent += '    </instance>\n';
-        }
-        xmlContent += '  </ALL_INSTANCES>\n</file>';
-
-        // ファイル名の作成 (例: 260212 (THU)-1.xml)
         const d = new Date();
         const days = ["SUN","MON","TUE","WED","THU","FRI","SAT"];
-        const dateStr = String(d.getFullYear()).slice(-2) + 
-                        String(d.getMonth() + 1).padStart(2, '0') + 
-                        String(d.getDate()).padStart(2, '0') + 
-                        " (" + days[d.getDay()] + ")";
+        const dateStr = String(d.getFullYear()).slice(-2) + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0') + " (" + days[d.getDay()] + ")";
         
-        const blob = new Blob([xmlContent], { type: 'text/xml' });
+        const blob = new Blob([xml], { type: 'text/xml' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
         a.download = dateStr + "-1.xml";
-        document.body.appendChild(a);
         a.click();
-        document.body.removeChild(a);
-        
-        log.innerText = "Session Exported.";
+    }
+
+    function vibrate(ms) {
+        if ('vibrate' in navigator) navigator.vibrate(ms);
     }
 </script>
 </body>
 </html>
+
+
