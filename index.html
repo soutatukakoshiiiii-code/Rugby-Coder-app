@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Rugby Analyst Pro - Simple</title>
+    <title>10 Colors For FW Unit</title>
+    <link rel="apple-touch-icon" href="icon.png">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -32,10 +33,23 @@
         }
         .tag-btn.active { background-color: #ff9f0a; color: black; box-shadow: 0 0 15px rgba(255, 159, 10, 0.4); }
 
-        .history-container { width: 100%; background: #2c2c2e; border-radius: 15px; padding: 10px; margin-bottom: 20px; max-height: 180px; overflow-y: auto; }
+        /* スワイプ削除用スタイル */
+        .history-container { width: 100%; background: #2c2c2e; border-radius: 15px; padding: 10px; margin-bottom: 20px; max-height: 250px; overflow-y: auto; }
         .history-title { font-size: 14px; margin-bottom: 8px; font-weight: 700; border-bottom: 1px solid #444; }
-        .history-item { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; font-size: 13px; border-bottom: 1px solid #333; }
-        .del-btn { color: var(--md-sys-color-error); background: none; border: none; font-weight: 700; padding: 5px; cursor: pointer; }
+        
+        .swipe-item-wrapper { position: relative; overflow: hidden; border-bottom: 1px solid #333; margin-bottom: 2px; border-radius: 8px; }
+        .swipe-item-content { 
+            display: flex; justify-content: space-between; align-items: center; 
+            padding: 12px; background: #2c2c2e; position: relative; z-index: 2;
+            transition: transform 0.3s ease; transform: translateX(0);
+            font-size: 13px;
+        }
+        .swipe-delete-btn { 
+            position: absolute; right: 0; top: 0; bottom: 0; 
+            width: 80px; background-color: #ff453a; color: white;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 14px; z-index: 1;
+        }
 
         .archive-container { width: 100%; margin-top: 10px; border-top: 1px solid #444; padding-top: 10px; }
         .archive-item { font-size: 12px; opacity: 0.7; margin-bottom: 4px; display: flex; justify-content: space-between; }
@@ -62,7 +76,7 @@
     </div>
 
     <div class="history-container">
-        <div class="history-title">Current Session Tags</div>
+        <div class="history-title">History (Swipe left to delete)</div>
         <div id="historyList"></div>
     </div>
 
@@ -83,18 +97,33 @@
     let timerInterval = null;
     let wakeLock = null;
 
+    // 音声コンテキストの初期化
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    function playClickSound(freq = 880, duration = 0.1) {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+    }
+
     async function requestWakeLock() {
         try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {}
     }
 
     function startSession() {
         if (startTime) return;
+        if (audioCtx.state === 'suspended') audioCtx.resume();
         startTime = Date.now();
         document.getElementById('startBtn').innerText = "RECORDING";
         document.getElementById('startBtn').classList.add('active');
         timerInterval = setInterval(updateTimer, 100);
         requestWakeLock();
-        vibrate(100);
     }
 
     function updateTimer() {
@@ -106,6 +135,7 @@
 
     function toggleTag(id) {
         if (!startTime) return;
+        playClickSound(660); // 1-6ボタンの音
         const btn = document.getElementById('btn-' + id);
         const nowRel = (Date.now() - startTime) / 1000;
 
@@ -123,34 +153,61 @@
             activeTags[id] = Math.max(0, nowRel - 5);
             btn.classList.add('active');
         }
-        vibrate(60);
     }
+
+    function sendSync() {
+        if (!startTime) return;
+        playClickSound(1000, 0.15); // SYNCの少し高い音
+        const nowRel = (Date.now() - startTime) / 1000;
+        instances.push({ id: Date.now(), code: "SYNC", start: Math.max(0, nowRel - 1).toFixed(2), end: nowRel.toFixed(2) });
+        updateHistoryUI();
+    }
+
+    // スワイプ管理用の変数
+    let touchStartX = 0;
 
     function updateHistoryUI() {
         const list = document.getElementById('historyList');
         list.innerHTML = '';
         instances.slice().reverse().forEach(inst => {
-            const item = document.createElement('div');
-            item.className = 'history-item';
-            item.innerHTML = `
-                <span>${inst.code} (${inst.start}s - ${inst.end}s)</span>
-                <button class="del-btn" onclick="deleteTag(${inst.id})">DEL</button>
-            `;
-            list.appendChild(item);
+            const wrapper = document.createElement('div');
+            wrapper.className = 'swipe-item-wrapper';
+            
+            const content = document.createElement('div');
+            content.className = 'swipe-item-content';
+            content.innerHTML = `<span>${inst.code}</span> <span>${inst.start}s - ${inst.end}s</span>`;
+            
+            const delBtn = document.createElement('div');
+            delBtn.className = 'swipe-delete-btn';
+            delBtn.innerText = 'DELETE';
+            delBtn.onclick = () => deleteTag(inst.id);
+
+            // スワイプイベント登録
+            content.ontouchstart = (e) => { touchStartX = e.touches[0].clientX; };
+            content.ontouchmove = (e) => {
+                let moveX = e.touches[0].clientX - touchStartX;
+                if (moveX < 0 && moveX > -80) {
+                    content.style.transform = `translateX(${moveX}px)`;
+                }
+            };
+            content.ontouchend = (e) => {
+                let endX = e.changedTouches[0].clientX;
+                if (touchStartX - endX > 40) {
+                    content.style.transform = 'translateX(-80px)';
+                } else {
+                    content.style.transform = 'translateX(0)';
+                }
+            };
+
+            wrapper.appendChild(delBtn);
+            wrapper.appendChild(content);
+            list.appendChild(wrapper);
         });
     }
 
     function deleteTag(tempId) {
         instances = instances.filter(i => i.id !== tempId);
         updateHistoryUI();
-    }
-
-    function sendSync() {
-        if (!startTime) return;
-        const nowRel = (Date.now() - startTime) / 1000;
-        instances.push({ id: Date.now(), code: "SYNC", start: Math.max(0, nowRel - 1).toFixed(2), end: nowRel.toFixed(2) });
-        updateHistoryUI();
-        vibrate([50, 30]);
     }
 
     function endSession() {
@@ -182,7 +239,6 @@
         document.getElementById('startBtn').classList.remove('active');
         document.getElementById('historyList').innerHTML = '';
         if (wakeLock) { wakeLock.release(); wakeLock = null; }
-        vibrate(200);
     }
 
     function generateXML() {
@@ -204,8 +260,6 @@
         a.download = `${dateStr}-${sessionCounter}.xml`;
         a.click();
     }
-
-    function vibrate(ms) { if ('vibrate' in navigator) navigator.vibrate(ms); }
 </script>
 </body>
 </html>
