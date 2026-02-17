@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>10 Colors For FW </title>
+    <title>10 Colors For FW Unit</title>
     <link rel="apple-touch-icon" href="icon.png">
     <link rel="apple-touch-icon" href="icon.png">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
@@ -75,7 +75,7 @@
 <body>
     <div class="header">
         <button id="startBtn" class="top-btn" onclick="startSession()">START REC</button>
-        <button id="editBtn" class="top-btn" onclick="toggleEditMode()">NAME EDIT</button>
+        <button id="editBtn" class="top-btn" onclick="toggleEditMode()">EDIT</button>
         <button id="soundBtn" class="top-btn active" onclick="toggleSound()">🔊</button>
     </div>
     
@@ -116,16 +116,28 @@
     let isSoundEnabled = true;
 
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    function playClickSound(freq = 880, duration = 0.1) {
-        if (!isSoundEnabled) return;
-        if (audioCtx.state === 'suspended') audioCtx.resume();
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
-        osc.connect(gain); gain.connect(audioCtx.destination);
-        osc.start(); osc.stop(audioCtx.currentTime + duration);
-    }
+
+// 音を再生する関数（開始周波数, 終了周波数, 再生時間）
+function playTone(freqStart, freqEnd, duration) {
+    if (!isSoundEnabled) return; // サウンド設定がOFFなら鳴らさない
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+
+    osc.frequency.setValueAtTime(freqStart, audioCtx.currentTime);
+    // 指数関数的に周波数を変化させる（上昇・下降を表現）
+    osc.frequency.exponentialRampToValueAtTime(freqEnd, audioCtx.currentTime + duration);
+
+    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    osc.start();
+    osc.stop(audioCtx.currentTime + duration);
+}
 
     function toggleSound() {
         isSoundEnabled = !isSoundEnabled;
@@ -139,7 +151,7 @@
         isEditMode = !isEditMode;
         const editBtn = document.getElementById('editBtn');
         const btns = document.querySelectorAll('.tag-btn');
-        editBtn.innerText = isEditMode ? "DONE" : "NAME EDIT";
+        editBtn.innerText = isEditMode ? "DONE" : "EDIT";
         editBtn.classList.toggle('active', isEditMode);
         btns.forEach(b => b.classList.toggle('editing', isEditMode));
         vibrate(50);
@@ -172,23 +184,33 @@
         document.getElementById('timer').innerText = `${mins}:${secs}`;
     }
 
-    function toggleTag(id) {
-        if (!startTime) return;
-        playClickSound(660);
-        const btn = document.getElementById('btn-' + id);
-        const nowRel = (Date.now() - startTime) / 1000;
-        if (activeTags[id] !== undefined) {
-            instances.push({ id: Date.now() + Math.random(), code: btn.innerText, start: activeTags[id].toFixed(2), end: nowRel.toFixed(2) });
-            delete activeTags[id];
-            btn.classList.remove('active');
-            updateHistoryUI();
-        } else {
-            activeTags[id] = Math.max(0, nowRel - 5);
-            btn.classList.add('active');
-        }
-        vibrate(40);
-    }
+   function toggleTag(id) {
+    if (!startTime) return;
+    const btn = document.getElementById('btn-' + id);
+    const nowRel = (Date.now() - startTime) / 1000;
 
+    if (activeTags[id] !== undefined) {
+        // 【終了時】：高い音から低い音へ（例: 880Hz → 440Hz）
+        playTone(880, 440, 0.1); 
+        
+        instances.push({ 
+            id: Date.now() + Math.random(), 
+            code: btn.innerText, 
+            start: activeTags[id].toFixed(2), 
+            end: nowRel.toFixed(2) 
+        });
+        delete activeTags[id];
+        btn.classList.remove('active');
+        updateHistoryUI();
+    } else {
+        // 【開始時】：低い音から高い音へ（例: 440Hz → 880Hz）
+        playTone(440, 880, 0.1); 
+        
+        activeTags[id] = Math.max(0, nowRel - 5);
+        btn.classList.add('active');
+    }
+    vibrate(40);
+}
     function sendSync() {
         if (!startTime) return;
         playClickSound(1000, 0.15);
