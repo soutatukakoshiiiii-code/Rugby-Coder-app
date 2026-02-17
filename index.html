@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>10 Colors For FW Unit</title>
-    <link rel="apple-touch-icon" href="icon.png">
+    <title>10colors</title>
     <link rel="apple-touch-icon" href="icon.png">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
@@ -15,21 +14,11 @@
             --md-sys-color-on-surface: #E6E1E5;
             --md-sys-color-secondary-container: #4A4458;
             --md-sys-color-on-secondary-container: #E8DEF8;
-            --md-sys-color-error: #FFB4AB;
         }
         body { background-color: var(--md-sys-color-surface); color: var(--md-sys-color-on-surface); font-family: 'Roboto', sans-serif; margin: 0; padding: 12px; display: flex; flex-direction: column; align-items: center; overflow-x: hidden; -webkit-user-select: none; }
         
-        /* ヘッダー: 3つに整理してサイズ確保 */
-        .header { 
-            width: 100%; 
-            display: grid; 
-            grid-template-columns: 1.2fr 1fr 0.6fr; 
-            gap: 8px; 
-            margin-bottom: 10px; 
-        }
-        .top-btn { 
-            height: 46px; border-radius: 23px; border: none; font-weight: 700; cursor: pointer; font-size: 13px;
-        }
+        .header { width: 100%; display: grid; grid-template-columns: 1.2fr 1fr 0.6fr; gap: 8px; margin-bottom: 10px; }
+        .top-btn { height: 46px; border-radius: 23px; border: none; font-weight: 700; cursor: pointer; font-size: 13px; }
         #startBtn { background-color: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary); }
         #startBtn.active { background-color: #30d158; color: black; }
         #editBtn { background-color: #444; color: white; border: 1px solid #666; }
@@ -40,12 +29,7 @@
         #timer { font-size: 32px; font-weight: 700; margin: 5px 0; color: var(--md-sys-color-primary); }
 
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; margin-bottom: 15px; }
-        .tag-btn { 
-            height: 90px; border-radius: 20px; border: none; 
-            background-color: var(--md-sys-color-secondary-container); 
-            color: var(--md-sys-color-on-secondary-container);
-            font-size: 24px; font-weight: 500; overflow: hidden; text-overflow: ellipsis;
-        }
+        .tag-btn { height: 90px; border-radius: 20px; border: none; background-color: var(--md-sys-color-secondary-container); color: var(--md-sys-color-on-secondary-container); font-size: 24px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; }
         .tag-btn.active { background-color: #ff9f0a; color: black; box-shadow: 0 0 15px rgba(255, 159, 10, 0.4); }
         .tag-btn.editing { border: 2px dashed #ff453a; opacity: 0.8; }
 
@@ -53,17 +37,9 @@
         .section-title { font-size: 13px; margin-bottom: 8px; font-weight: 700; border-bottom: 1px solid #444; padding-bottom: 4px; color: #aaa; }
         
         .swipe-item-wrapper { position: relative; overflow: hidden; border-bottom: 1px solid #333; margin-bottom: 2px; border-radius: 8px; }
-        .swipe-item-content { 
-            display: flex; justify-content: space-between; align-items: center; 
-            padding: 12px; background: #2c2c2e; position: relative; z-index: 2;
-            transition: transform 0.3s ease; transform: translateX(0); font-size: 13px;
-        }
-        .swipe-delete-btn { 
-            position: absolute; right: 0; top: 0; bottom: 0; width: 80px; background-color: #ff453a; color: white;
-            display: flex; align-items: center; justify-content: center; font-weight: 700; z-index: 1;
-        }
+        .swipe-item-content { display: flex; justify-content: space-between; align-items: center; padding: 12px; background: #2c2c2e; position: relative; z-index: 2; transition: transform 0.3s ease; font-size: 13px; }
+        .swipe-delete-btn { position: absolute; right: 0; top: 0; bottom: 0; width: 80px; background-color: #ff453a; color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; z-index: 1; }
 
-        /* 下部ボタンエリア */
         .action-area { width: 100%; display: flex; flex-direction: column; gap: 10px; margin-top: 5px; }
         #syncBtn { width: 100%; height: 50px; border-radius: 25px; background-color: #0a84ff; color: white; border: none; font-weight: 700; font-size: 16px; }
         .end-btn { width: 100%; height: 55px; border-radius: 28px; background-color: #333; color: var(--md-sys-color-primary); border: 1px solid #444; font-weight: 700; }
@@ -117,27 +93,20 @@
 
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-// 音を再生する関数（開始周波数, 終了周波数, 再生時間）
-function playTone(freqStart, freqEnd, duration) {
-    if (!isSoundEnabled) return; // サウンド設定がOFFなら鳴らさない
-    if (audioCtx.state === 'suspended') audioCtx.resume();
-
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-
-    osc.frequency.setValueAtTime(freqStart, audioCtx.currentTime);
-    // 指数関数的に周波数を変化させる（上昇・下降を表現）
-    osc.frequency.exponentialRampToValueAtTime(freqEnd, audioCtx.currentTime + duration);
-
-    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
-
-    osc.connect(gain);
-    gain.connect(audioCtx.destination);
-
-    osc.start();
-    osc.stop(audioCtx.currentTime + duration);
-}
+    function playTone(freqStart, freqEnd, duration) {
+        if (!isSoundEnabled) return;
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.frequency.setValueAtTime(freqStart, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(freqEnd, audioCtx.currentTime + duration);
+        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+    }
 
     function toggleSound() {
         isSoundEnabled = !isSoundEnabled;
@@ -174,6 +143,7 @@ function playTone(freqStart, freqEnd, duration) {
         document.getElementById('startBtn').classList.add('active');
         timerInterval = setInterval(updateTimer, 100);
         if ('wakeLock' in navigator) navigator.wakeLock.request('screen').then(lock => wakeLock = lock);
+        playTone(440, 880, 0.1); // 開始音
         vibrate(100);
     }
 
@@ -184,36 +154,33 @@ function playTone(freqStart, freqEnd, duration) {
         document.getElementById('timer').innerText = `${mins}:${secs}`;
     }
 
-   function toggleTag(id) {
-    if (!startTime) return;
-    const btn = document.getElementById('btn-' + id);
-    const nowRel = (Date.now() - startTime) / 1000;
+    function toggleTag(id) {
+        if (!startTime) return;
+        const btn = document.getElementById('btn-' + id);
+        const nowRel = (Date.now() - startTime) / 1000;
 
-    if (activeTags[id] !== undefined) {
-        // 【終了時】：高い音から低い音へ（例: 880Hz → 440Hz）
-        playTone(880, 440, 0.1); 
-        
-        instances.push({ 
-            id: Date.now() + Math.random(), 
-            code: btn.innerText, 
-            start: activeTags[id].toFixed(2), 
-            end: nowRel.toFixed(2) 
-        });
-        delete activeTags[id];
-        btn.classList.remove('active');
-        updateHistoryUI();
-    } else {
-        // 【開始時】：低い音から高い音へ（例: 440Hz → 880Hz）
-        playTone(440, 880, 0.1); 
-        
-        activeTags[id] = Math.max(0, nowRel - 5);
-        btn.classList.add('active');
+        if (activeTags[id] !== undefined) {
+            playTone(880, 440, 0.1); // 終了音
+            instances.push({ 
+                id: Date.now() + Math.random(), 
+                code: btn.innerText, 
+                start: activeTags[id].toFixed(2), 
+                end: nowRel.toFixed(2) 
+            });
+            delete activeTags[id];
+            btn.classList.remove('active');
+            updateHistoryUI();
+        } else {
+            playTone(440, 880, 0.1); // 開始音
+            activeTags[id] = Math.max(0, nowRel - 5);
+            btn.classList.add('active');
+        }
+        vibrate(40);
     }
-    vibrate(40);
-}
+
     function sendSync() {
         if (!startTime) return;
-        playClickSound(1000, 0.15);
+        playTone(1000, 1000, 0.15); // playClickSoundからplayToneに修正
         const nowRel = (Date.now() - startTime) / 1000;
         instances.push({ id: Date.now(), code: "SYNC", start: Math.max(0, nowRel - 1).toFixed(2), end: nowRel.toFixed(2) });
         updateHistoryUI();
@@ -246,23 +213,14 @@ function playTone(freqStart, freqEnd, duration) {
         });
     }
 
-   // ... (中略：これまでのHTML/CSS部分は共通)
-
     function endSession() {
-        // セッションが開始されていない、または記録がない場合は何もしない
         if (!startTime || instances.length === 0) return;
-
-        // ★修正ポイント：保存前の最終確認
         const confirmSave = confirm("セッションを終了してXMLを書き出しますか？\n(保存後は現在の記録がリセットされます)");
-        
-        if (!confirmSave) {
-            return; // キャンセルされたら処理を中断
-        }
+        if (!confirmSave) return;
 
         const xml = generateXML();
         downloadFile(xml);
         
-        // アーカイブに追加
         const archiveSection = document.getElementById('archiveSection');
         const archiveList = document.getElementById('archiveList');
         archiveSection.style.display = 'block';
@@ -271,11 +229,7 @@ function playTone(freqStart, freqEnd, duration) {
         item.innerHTML = `<span>Session #${sessionCounter}</span> <span>${instances.length} tags</span>`;
         archiveList.prepend(item);
 
-        // リセット処理
-        instances = []; 
-        activeTags = {}; 
-        startTime = null; 
-        sessionCounter++;
+        instances = []; activeTags = {}; startTime = null; sessionCounter++;
         clearInterval(timerInterval);
         document.getElementById('timer').innerText = "00:00.0";
         document.getElementById('startBtn').innerText = "START REC";
@@ -284,8 +238,6 @@ function playTone(freqStart, freqEnd, duration) {
         if (wakeLock) wakeLock.release();
         vibrate(200);
     }
-
-// ... (以下、generateXML以降のコードは共通)
 
     function generateXML() {
         let xml = '<?xml version="1.0" encoding="UTF-8"?>\n<file>\n  <ALL_INSTANCES>\n';
