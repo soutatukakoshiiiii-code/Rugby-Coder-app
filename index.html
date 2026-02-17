@@ -18,75 +18,64 @@
         }
         body { background-color: var(--md-sys-color-surface); color: var(--md-sys-color-on-surface); font-family: 'Roboto', sans-serif; margin: 0; padding: 12px; display: flex; flex-direction: column; align-items: center; overflow-x: hidden; -webkit-user-select: none; }
         
-        /* ヘッダーの3カラム化を修正 */
+        /* ヘッダー: 3つに整理してサイズ確保 */
         .header { 
             width: 100%; 
             display: grid; 
-            grid-template-columns: repeat(3, 1fr); 
-            gap: 6px; 
+            grid-template-columns: 1.2fr 1fr 0.6fr; 
+            gap: 8px; 
             margin-bottom: 10px; 
         }
         .top-btn { 
-            height: 48px; 
-            border-radius: 24px; 
-            border: none; 
-            font-weight: 700; 
-            cursor: pointer; 
-            font-size: 11px; /* スマホ用に少し小さく設定 */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0 4px;
+            height: 46px; border-radius: 23px; border: none; font-weight: 700; cursor: pointer; font-size: 13px;
         }
-        
         #startBtn { background-color: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary); }
         #startBtn.active { background-color: #30d158; color: black; }
         #editBtn { background-color: #444; color: white; border: 1px solid #666; }
-        #editBtn.active { background-color: #ff453a; color: white; border: none; box-shadow: 0 0 10px rgba(255, 69, 58, 0.5); }
+        #editBtn.active { background-color: #ff453a; color: white; border: none; }
+        #soundBtn { background-color: #444; font-size: 18px; border: 1px solid #666; }
+        #soundBtn.active { background-color: #0a84ff; border: none; }
         
-        #timer { font-size: 28px; font-weight: 700; margin: 5px 0; color: var(--md-sys-color-primary); }
+        #timer { font-size: 32px; font-weight: 700; margin: 5px 0; color: var(--md-sys-color-primary); }
 
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; margin-bottom: 15px; }
         .tag-btn { 
-            height: 85px; border-radius: 20px; border: none; 
+            height: 90px; border-radius: 20px; border: none; 
             background-color: var(--md-sys-color-secondary-container); 
             color: var(--md-sys-color-on-secondary-container);
-            font-size: 22px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+            font-size: 24px; font-weight: 500; overflow: hidden; text-overflow: ellipsis;
         }
-        .tag-btn.active { background-color: #ff9f0a; color: black; }
+        .tag-btn.active { background-color: #ff9f0a; color: black; box-shadow: 0 0 15px rgba(255, 159, 10, 0.4); }
         .tag-btn.editing { border: 2px dashed #ff453a; opacity: 0.8; }
 
-        .history-container { width: 100%; background: #2c2c2e; border-radius: 15px; padding: 10px; margin-bottom: 15px; max-height: 200px; overflow-y: auto; }
-        .history-title { font-size: 13px; margin-bottom: 8px; font-weight: 700; border-bottom: 1px solid #444; }
+        .history-container { width: 100%; background: #2c2c2e; border-radius: 15px; padding: 10px; margin-bottom: 15px; max-height: 180px; overflow-y: auto; }
+        .section-title { font-size: 13px; margin-bottom: 8px; font-weight: 700; border-bottom: 1px solid #444; padding-bottom: 4px; color: #aaa; }
         
         .swipe-item-wrapper { position: relative; overflow: hidden; border-bottom: 1px solid #333; margin-bottom: 2px; border-radius: 8px; }
         .swipe-item-content { 
             display: flex; justify-content: space-between; align-items: center; 
             padding: 12px; background: #2c2c2e; position: relative; z-index: 2;
-            transition: transform 0.3s ease; transform: translateX(0);
-            font-size: 13px;
+            transition: transform 0.3s ease; transform: translateX(0); font-size: 13px;
         }
         .swipe-delete-btn { 
-            position: absolute; right: 0; top: 0; bottom: 0; 
-            width: 80px; background-color: #ff453a; color: white;
-            display: flex; align-items: center; justify-content: center;
-            font-weight: 700; font-size: 14px; z-index: 1;
+            position: absolute; right: 0; top: 0; bottom: 0; width: 80px; background-color: #ff453a; color: white;
+            display: flex; align-items: center; justify-content: center; font-weight: 700; z-index: 1;
         }
 
-        .footer { width: 100%; margin-top: 5px; }
-        .end-btn { width: 100%; height: 55px; border-radius: 28px; background-color: #333; color: var(--md-sys-color-primary); border: 1px solid #444; font-weight: 700; cursor: pointer; }
-        
-        /* 画面幅が非常に狭い場合の調整 */
-        @media screen and (max-width: 340px) {
-            .top-btn { font-size: 10px; }
-        }
+        /* 下部ボタンエリア */
+        .action-area { width: 100%; display: flex; flex-direction: column; gap: 10px; margin-top: 5px; }
+        #syncBtn { width: 100%; height: 50px; border-radius: 25px; background-color: #0a84ff; color: white; border: none; font-weight: 700; font-size: 16px; }
+        .end-btn { width: 100%; height: 55px; border-radius: 28px; background-color: #333; color: var(--md-sys-color-primary); border: 1px solid #444; font-weight: 700; }
+
+        .archive-container { width: 100%; margin-top: 20px; padding-top: 10px; border-top: 1px solid #444; }
+        .archive-item { font-size: 12px; opacity: 0.7; margin-bottom: 6px; display: flex; justify-content: space-between; background: #222; padding: 5px 10px; border-radius: 5px; }
     </style>
 </head>
 <body>
     <div class="header">
         <button id="startBtn" class="top-btn" onclick="startSession()">START REC</button>
-        <button id="syncBtn" class="top-btn" onclick="sendSync()" style="background:#0a84ff; color:white;">SYNC</button>
-        <button id="editBtn" class="top-btn" onclick="toggleEditMode()">NAME EDIT</button>
+        <button id="editBtn" class="top-btn" onclick="toggleEditMode()">EDIT</button>
+        <button id="soundBtn" class="top-btn active" onclick="toggleSound()">🔊</button>
     </div>
     
     <div id="timer">00:00.0</div>
@@ -101,12 +90,18 @@
     </div>
 
     <div class="history-container">
-        <div class="history-title">History (Swipe left to delete)</div>
+        <div class="section-title">Current Session (Swipe left to delete)</div>
         <div id="historyList"></div>
     </div>
 
-    <div class="footer">
+    <div class="action-area">
+        <button id="syncBtn" onclick="sendSync()">SYNC POINT</button>
         <button class="end-btn" onclick="endSession()">END & SAVE XML</button>
+    </div>
+
+    <div class="archive-container" id="archiveSection" style="display:none;">
+        <div class="section-title">Export Archive</div>
+        <div id="archiveList"></div>
     </div>
 
 <script>
@@ -117,9 +112,11 @@
     let timerInterval = null;
     let wakeLock = null;
     let isEditMode = false;
+    let isSoundEnabled = true;
 
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     function playClickSound(freq = 880, duration = 0.1) {
+        if (!isSoundEnabled) return;
         if (audioCtx.state === 'suspended') audioCtx.resume();
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
@@ -129,37 +126,32 @@
         osc.start(); osc.stop(audioCtx.currentTime + duration);
     }
 
+    function toggleSound() {
+        isSoundEnabled = !isSoundEnabled;
+        const soundBtn = document.getElementById('soundBtn');
+        soundBtn.innerText = isSoundEnabled ? "🔊" : "🔇";
+        soundBtn.classList.toggle('active', isSoundEnabled);
+        vibrate(50);
+    }
+
     function toggleEditMode() {
         isEditMode = !isEditMode;
         const editBtn = document.getElementById('editBtn');
         const btns = document.querySelectorAll('.tag-btn');
-        if (isEditMode) {
-            editBtn.classList.add('active');
-            editBtn.innerText = "DONE";
-            btns.forEach(b => b.classList.add('editing'));
-        } else {
-            editBtn.classList.remove('active');
-            editBtn.innerText = "EDIT";
-            btns.forEach(b => b.classList.remove('editing'));
-        }
+        editBtn.innerText = isEditMode ? "DONE" : "EDIT";
+        editBtn.classList.toggle('active', isEditMode);
+        btns.forEach(b => b.classList.toggle('editing', isEditMode));
         vibrate(50);
     }
 
     function handleTagClick(id) {
         if (isEditMode) {
             const btn = document.getElementById('btn-' + id);
-            const currentName = btn.innerText;
-            const newName = prompt("Rename Button " + id + ":", currentName);
-            if (newName !== null && newName.trim() !== "") {
-                btn.innerText = newName.trim();
-            }
+            const newName = prompt("Rename Button " + id + ":", btn.innerText);
+            if (newName) btn.innerText = newName.trim();
         } else {
             toggleTag(id);
         }
-    }
-
-    async function requestWakeLock() {
-        try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch (err) {}
     }
 
     function startSession() {
@@ -168,7 +160,7 @@
         document.getElementById('startBtn').innerText = "REC ON";
         document.getElementById('startBtn').classList.add('active');
         timerInterval = setInterval(updateTimer, 100);
-        requestWakeLock();
+        if ('wakeLock' in navigator) navigator.wakeLock.request('screen').then(lock => wakeLock = lock);
         vibrate(100);
     }
 
@@ -183,16 +175,9 @@
         if (!startTime) return;
         playClickSound(660);
         const btn = document.getElementById('btn-' + id);
-        const codeName = btn.innerText;
         const nowRel = (Date.now() - startTime) / 1000;
-
         if (activeTags[id] !== undefined) {
-            instances.push({ 
-                id: Date.now() + Math.random(), 
-                code: codeName, 
-                start: activeTags[id].toFixed(2), 
-                end: nowRel.toFixed(2) 
-            });
+            instances.push({ id: Date.now() + Math.random(), code: btn.innerText, start: activeTags[id].toFixed(2), end: nowRel.toFixed(2) });
             delete activeTags[id];
             btn.classList.remove('active');
             updateHistoryUI();
@@ -224,44 +209,60 @@
             content.innerHTML = `<span>${inst.code}</span> <span>${inst.start}s - ${inst.end}s</span>`;
             const delBtn = document.createElement('div');
             delBtn.className = 'swipe-delete-btn';
-            delBtn.innerText = 'DELETE';
-            delBtn.onclick = () => deleteTag(inst.id);
-            content.ontouchstart = (e) => { touchStartX = e.touches[0].clientX; };
-            content.ontouchmove = (e) => {
+            delBtn.innerText = 'DEL';
+            delBtn.onclick = () => { instances = instances.filter(i => i.id !== inst.id); updateHistoryUI(); };
+            content.ontouchstart = e => touchStartX = e.touches[0].clientX;
+            content.ontouchmove = e => {
                 let moveX = e.touches[0].clientX - touchStartX;
                 if (moveX < 0 && moveX > -80) content.style.transform = `translateX(${moveX}px)`;
             };
-            content.ontouchend = (e) => {
-                if (touchStartX - e.changedTouches[0].clientX > 40) content.style.transform = 'translateX(-80px)';
-                else content.style.transform = 'translateX(0)';
+            content.ontouchend = e => {
+                content.style.transform = (touchStartX - e.changedTouches[0].clientX > 40) ? 'translateX(-80px)' : 'translateX(0)';
             };
-            wrapper.appendChild(delBtn); wrapper.appendChild(content); list.appendChild(wrapper);
+            wrapper.append(delBtn, content); list.append(wrapper);
         });
     }
 
-    function deleteTag(tempId) {
-        instances = instances.filter(i => i.id !== tempId);
-        updateHistoryUI();
-    }
+   // ... (中略：これまでのHTML/CSS部分は共通)
 
     function endSession() {
-        if (!startTime) return;
-        const nowRel = (Date.now() - startTime) / 1000;
-        for (let id in activeTags) {
-            const name = document.getElementById('btn-' + id).innerText;
-            instances.push({ code: name, start: activeTags[id].toFixed(2), end: nowRel.toFixed(2) });
-            document.getElementById('btn-' + id).classList.remove('active');
+        // セッションが開始されていない、または記録がない場合は何もしない
+        if (!startTime || instances.length === 0) return;
+
+        // ★修正ポイント：保存前の最終確認
+        const confirmSave = confirm("セッションを終了してXMLを保存しますか？\n(保存後は現在の記録がリセットされます)");
+        
+        if (!confirmSave) {
+            return; // キャンセルされたら処理を中断
         }
-        if (instances.length > 0) downloadFile(generateXML());
-        instances = []; activeTags = {}; startTime = null; sessionCounter++;
+
+        const xml = generateXML();
+        downloadFile(xml);
+        
+        // アーカイブに追加
+        const archiveSection = document.getElementById('archiveSection');
+        const archiveList = document.getElementById('archiveList');
+        archiveSection.style.display = 'block';
+        const item = document.createElement('div');
+        item.className = 'archive-item';
+        item.innerHTML = `<span>Session #${sessionCounter}</span> <span>${instances.length} tags</span>`;
+        archiveList.prepend(item);
+
+        // リセット処理
+        instances = []; 
+        activeTags = {}; 
+        startTime = null; 
+        sessionCounter++;
         clearInterval(timerInterval);
         document.getElementById('timer').innerText = "00:00.0";
         document.getElementById('startBtn').innerText = "START REC";
         document.getElementById('startBtn').classList.remove('active');
         document.getElementById('historyList').innerHTML = '';
-        if (wakeLock) { wakeLock.release(); wakeLock = null; }
-        vibrate(150);
+        if (wakeLock) wakeLock.release();
+        vibrate(200);
     }
+
+// ... (以下、generateXML以降のコードは共通)
 
     function generateXML() {
         let xml = '<?xml version="1.0" encoding="UTF-8"?>\n<file>\n  <ALL_INSTANCES>\n';
@@ -278,9 +279,7 @@
         const blob = new Blob([xml], { type: 'text/xml' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = url;
-        a.download = `${dateStr}-${sessionCounter}.xml`;
-        a.click();
+        a.href = url; a.download = `${dateStr}-${sessionCounter}.xml`; a.click();
     }
     function vibrate(ms) { if ('vibrate' in navigator) navigator.vibrate(ms); }
 </script>
