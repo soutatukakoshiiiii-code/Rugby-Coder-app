@@ -18,23 +18,27 @@
         }
         body { background-color: var(--md-sys-color-surface); color: var(--md-sys-color-on-surface); font-family: 'Roboto', sans-serif; margin: 0; padding: 15px; display: flex; flex-direction: column; align-items: center; overflow-x: hidden; -webkit-user-select: none; }
         
-        .header { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 10px; }
-        .top-btn { height: 50px; border-radius: 25px; border: none; font-weight: 700; cursor: pointer; }
+        .header { width: 100%; display: grid; grid-template-columns: 1fr 1fr 0.6fr; gap: 8px; margin-bottom: 10px; }
+        .top-btn { height: 44px; border-radius: 22px; border: none; font-weight: 700; cursor: pointer; font-size: 13px; }
         #startBtn { background-color: var(--md-sys-color-primary); color: var(--md-sys-color-on-primary); }
         #startBtn.active { background-color: #30d158; color: black; }
-        #timer { font-size: 24px; font-weight: 700; margin: 10px 0; color: var(--md-sys-color-primary); }
+        #editBtn { background-color: #444; color: white; border: 1px solid #666; }
+        #editBtn.active { background-color: #ff453a; color: white; border: none; box-shadow: 0 0 10px rgba(255, 69, 58, 0.5); }
+        
+        #timer { font-size: 24px; font-weight: 700; margin: 5px 0; color: var(--md-sys-color-primary); }
 
-        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; margin-bottom: 20px; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; margin-bottom: 15px; }
         .tag-btn { 
-            height: 90px; border-radius: 20px; border: none; 
+            height: 85px; border-radius: 20px; border: none; 
             background-color: var(--md-sys-color-secondary-container); 
             color: var(--md-sys-color-on-secondary-container);
-            font-size: 32px; font-weight: 500;
+            font-size: 22px; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+            padding: 0 5px;
         }
-        .tag-btn.active { background-color: #ff9f0a; color: black; box-shadow: 0 0 15px rgba(255, 159, 10, 0.4); }
+        .tag-btn.active { background-color: #ff9f0a; color: black; }
+        .tag-btn.editing { border: 2px dashed #ff453a; opacity: 0.8; }
 
-        /* スワイプ削除用スタイル */
-        .history-container { width: 100%; background: #2c2c2e; border-radius: 15px; padding: 10px; margin-bottom: 20px; max-height: 250px; overflow-y: auto; }
+        .history-container { width: 100%; background: #2c2c2e; border-radius: 15px; padding: 10px; margin-bottom: 15px; max-height: 220px; overflow-y: auto; }
         .history-title { font-size: 14px; margin-bottom: 8px; font-weight: 700; border-bottom: 1px solid #444; }
         
         .swipe-item-wrapper { position: relative; overflow: hidden; border-bottom: 1px solid #333; margin-bottom: 2px; border-radius: 8px; }
@@ -51,28 +55,26 @@
             font-weight: 700; font-size: 14px; z-index: 1;
         }
 
-        .archive-container { width: 100%; margin-top: 10px; border-top: 1px solid #444; padding-top: 10px; }
-        .archive-item { font-size: 12px; opacity: 0.7; margin-bottom: 4px; display: flex; justify-content: space-between; }
-
-        .footer { width: 100%; margin-top: 10px; }
-        .end-btn { width: 100%; height: 60px; border-radius: 30px; background-color: #333; color: var(--md-sys-color-primary); border: 1px solid #444; font-weight: 700; cursor: pointer; }
+        .footer { width: 100%; margin-top: 5px; }
+        .end-btn { width: 100%; height: 55px; border-radius: 28px; background-color: #333; color: var(--md-sys-color-primary); border: 1px solid #444; font-weight: 700; cursor: pointer; }
     </style>
 </head>
 <body>
     <div class="header">
         <button id="startBtn" class="top-btn" onclick="startSession()">START REC</button>
         <button id="syncBtn" class="top-btn" onclick="sendSync()" style="background:#0a84ff; color:white;">SYNC</button>
+        <button id="editBtn" class="top-btn" onclick="toggleEditMode()">NAME EDIT</button>
     </div>
     
     <div id="timer">00:00.0</div>
 
     <div class="grid">
-        <button id="btn-1" class="tag-btn" onclick="toggleTag(1)">1</button>
-        <button id="btn-2" class="tag-btn" onclick="toggleTag(2)">2</button>
-        <button id="btn-3" class="tag-btn" onclick="toggleTag(3)">3</button>
-        <button id="btn-4" class="tag-btn" onclick="toggleTag(4)">4</button>
-        <button id="btn-5" class="tag-btn" onclick="toggleTag(5)">5</button>
-        <button id="btn-6" class="tag-btn" onclick="toggleTag(6)">6</button>
+        <button id="btn-1" class="tag-btn" onclick="handleTagClick(1)">1</button>
+        <button id="btn-2" class="tag-btn" onclick="handleTagClick(2)">2</button>
+        <button id="btn-3" class="tag-btn" onclick="handleTagClick(3)">3</button>
+        <button id="btn-4" class="tag-btn" onclick="handleTagClick(4)">4</button>
+        <button id="btn-5" class="tag-btn" onclick="handleTagClick(5)">5</button>
+        <button id="btn-6" class="tag-btn" onclick="handleTagClick(6)">6</button>
     </div>
 
     <div class="history-container">
@@ -84,11 +86,6 @@
         <button class="end-btn" onclick="endSession()">END & SAVE XML</button>
     </div>
 
-    <div class="archive-container">
-        <div class="history-title" style="border-bottom:none;">Export Archive</div>
-        <div id="archiveList"></div>
-    </div>
-
 <script>
     let startTime = null;
     let instances = [];
@@ -96,20 +93,45 @@
     let sessionCounter = 1;
     let timerInterval = null;
     let wakeLock = null;
+    let isEditMode = false;
 
-    // 音声コンテキストの初期化
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     function playClickSound(freq = 880, duration = 0.1) {
+        if (audioCtx.state === 'suspended') audioCtx.resume();
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
-        osc.type = 'sine';
         osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
-        gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + duration);
+        gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + duration);
+    }
+
+    function toggleEditMode() {
+        isEditMode = !isEditMode;
+        const editBtn = document.getElementById('editBtn');
+        const btns = document.querySelectorAll('.tag-btn');
+        if (isEditMode) {
+            editBtn.classList.add('active');
+            editBtn.innerText = "DONE";
+            btns.forEach(b => b.classList.add('editing'));
+        } else {
+            editBtn.classList.remove('active');
+            editBtn.innerText = "EDIT";
+            btns.forEach(b => b.classList.remove('editing'));
+        }
+        vibrate(50);
+    }
+
+    function handleTagClick(id) {
+        if (isEditMode) {
+            const currentName = document.getElementById('btn-' + id).innerText;
+            const newName = prompt("Enter tag name for Button " + id + ":", currentName);
+            if (newName !== null && newName.trim() !== "") {
+                document.getElementById('btn-' + id).innerText = newName.trim();
+            }
+        } else {
+            toggleTag(id);
+        }
     }
 
     async function requestWakeLock() {
@@ -118,12 +140,12 @@
 
     function startSession() {
         if (startTime) return;
-        if (audioCtx.state === 'suspended') audioCtx.resume();
         startTime = Date.now();
         document.getElementById('startBtn').innerText = "RECORDING";
         document.getElementById('startBtn').classList.add('active');
         timerInterval = setInterval(updateTimer, 100);
         requestWakeLock();
+        vibrate(100);
     }
 
     function updateTimer() {
@@ -135,14 +157,15 @@
 
     function toggleTag(id) {
         if (!startTime) return;
-        playClickSound(660); // 1-6ボタンの音
+        playClickSound(660);
         const btn = document.getElementById('btn-' + id);
+        const codeName = btn.innerText;
         const nowRel = (Date.now() - startTime) / 1000;
 
         if (activeTags[id] !== undefined) {
             instances.push({ 
                 id: Date.now() + Math.random(), 
-                code: "Button " + id, 
+                code: codeName, 
                 start: activeTags[id].toFixed(2), 
                 end: nowRel.toFixed(2) 
             });
@@ -153,55 +176,42 @@
             activeTags[id] = Math.max(0, nowRel - 5);
             btn.classList.add('active');
         }
+        vibrate(40);
     }
 
     function sendSync() {
         if (!startTime) return;
-        playClickSound(1000, 0.15); // SYNCの少し高い音
+        playClickSound(1000, 0.15);
         const nowRel = (Date.now() - startTime) / 1000;
         instances.push({ id: Date.now(), code: "SYNC", start: Math.max(0, nowRel - 1).toFixed(2), end: nowRel.toFixed(2) });
         updateHistoryUI();
+        vibrate([30, 30]);
     }
 
-    // スワイプ管理用の変数
     let touchStartX = 0;
-
     function updateHistoryUI() {
         const list = document.getElementById('historyList');
         list.innerHTML = '';
         instances.slice().reverse().forEach(inst => {
             const wrapper = document.createElement('div');
             wrapper.className = 'swipe-item-wrapper';
-            
             const content = document.createElement('div');
             content.className = 'swipe-item-content';
             content.innerHTML = `<span>${inst.code}</span> <span>${inst.start}s - ${inst.end}s</span>`;
-            
             const delBtn = document.createElement('div');
             delBtn.className = 'swipe-delete-btn';
             delBtn.innerText = 'DELETE';
             delBtn.onclick = () => deleteTag(inst.id);
-
-            // スワイプイベント登録
             content.ontouchstart = (e) => { touchStartX = e.touches[0].clientX; };
             content.ontouchmove = (e) => {
                 let moveX = e.touches[0].clientX - touchStartX;
-                if (moveX < 0 && moveX > -80) {
-                    content.style.transform = `translateX(${moveX}px)`;
-                }
+                if (moveX < 0 && moveX > -80) content.style.transform = `translateX(${moveX}px)`;
             };
             content.ontouchend = (e) => {
-                let endX = e.changedTouches[0].clientX;
-                if (touchStartX - endX > 40) {
-                    content.style.transform = 'translateX(-80px)';
-                } else {
-                    content.style.transform = 'translateX(0)';
-                }
+                if (touchStartX - e.changedTouches[0].clientX > 40) content.style.transform = 'translateX(-80px)';
+                else content.style.transform = 'translateX(0)';
             };
-
-            wrapper.appendChild(delBtn);
-            wrapper.appendChild(content);
-            list.appendChild(wrapper);
+            wrapper.appendChild(delBtn); wrapper.appendChild(content); list.appendChild(wrapper);
         });
     }
 
@@ -214,31 +224,19 @@
         if (!startTime) return;
         const nowRel = (Date.now() - startTime) / 1000;
         for (let id in activeTags) {
-            instances.push({ code: "Button " + id, start: activeTags[id].toFixed(2), end: nowRel.toFixed(2) });
+            const name = document.getElementById('btn-' + id).innerText;
+            instances.push({ code: name, start: activeTags[id].toFixed(2), end: nowRel.toFixed(2) });
             document.getElementById('btn-' + id).classList.remove('active');
         }
-        
-        if (instances.length > 0) {
-            const xml = generateXML();
-            const timeLabel = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
-            const archiveList = document.getElementById('archiveList');
-            const archiveItem = document.createElement('div');
-            archiveItem.className = 'archive-item';
-            archiveItem.innerHTML = `<span>#${sessionCounter} (${timeLabel})</span> <span>${instances.length} tags</span>`;
-            archiveList.prepend(archiveItem);
-            downloadFile(xml);
-        }
-
-        instances = [];
-        activeTags = {};
-        startTime = null;
-        sessionCounter++;
+        if (instances.length > 0) downloadFile(generateXML());
+        instances = []; activeTags = {}; startTime = null; sessionCounter++;
         clearInterval(timerInterval);
         document.getElementById('timer').innerText = "00:00.0";
         document.getElementById('startBtn').innerText = "START REC";
         document.getElementById('startBtn').classList.remove('active');
         document.getElementById('historyList').innerHTML = '';
         if (wakeLock) { wakeLock.release(); wakeLock = null; }
+        vibrate(150);
     }
 
     function generateXML() {
@@ -260,6 +258,7 @@
         a.download = `${dateStr}-${sessionCounter}.xml`;
         a.click();
     }
+    function vibrate(ms) { if ('vibrate' in navigator) navigator.vibrate(ms); }
 </script>
 </body>
 </html>
