@@ -231,7 +231,7 @@
         if (!startTime || instances.length === 0) return;
 
         // ★修正ポイント：保存前の最終確認
-        const confirmSave = confirm("セッションを終了してXMLを保存しますか？\n(保存後は現在の記録がリセットされます)");
+        const confirmSave = confirm("セッションを終了してXMLを書き出しますか？\n(保存後は現在の記録がリセットされます)");
         
         if (!confirmSave) {
             return; // キャンセルされたら処理を中断
