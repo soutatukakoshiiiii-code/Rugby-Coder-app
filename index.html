@@ -139,7 +139,7 @@
         isEditMode = !isEditMode;
         const editBtn = document.getElementById('editBtn');
         const btns = document.querySelectorAll('.tag-btn');
-        editBtn.innerText = isEditMode ? "DONE" : "EDIT";
+        editBtn.innerText = isEditMode ? "DONE" : "NAME EDIT";
         editBtn.classList.toggle('active', isEditMode);
         btns.forEach(b => b.classList.toggle('editing', isEditMode));
         vibrate(50);
