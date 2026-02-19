@@ -93,6 +93,20 @@
 
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
+    // 起動時にストレージから未書き出しデータを復元
+    window.addEventListener('load', () => {
+        const savedData = localStorage.getItem('rugby_instances');
+        if (savedData) {
+            instances = JSON.parse(savedData);
+            updateHistoryUI();
+        }
+    });
+
+    // データをストレージに一時保存する関数
+    function saveToStorage() {
+        localStorage.setItem('rugby_instances', JSON.stringify(instances));
+    }
+
     function playTone(freqStart, freqEnd, duration) {
         if (!isSoundEnabled) return;
         if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -143,7 +157,7 @@
         document.getElementById('startBtn').classList.add('active');
         timerInterval = setInterval(updateTimer, 100);
         if ('wakeLock' in navigator) navigator.wakeLock.request('screen').then(lock => wakeLock = lock);
-        playTone(440, 880, 0.1); // 開始音
+        playTone(440, 880, 0.1);
         vibrate(100);
     }
 
@@ -160,7 +174,7 @@
         const nowRel = (Date.now() - startTime) / 1000;
 
         if (activeTags[id] !== undefined) {
-            playTone(880, 440, 0.1); // 終了音
+            playTone(880, 440, 0.1);
             instances.push({ 
                 id: Date.now() + Math.random(), 
                 code: btn.innerText, 
@@ -170,8 +184,9 @@
             delete activeTags[id];
             btn.classList.remove('active');
             updateHistoryUI();
+            saveToStorage(); // 変更時に保存
         } else {
-            playTone(440, 880, 0.1); // 開始音
+            playTone(440, 880, 0.1);
             activeTags[id] = Math.max(0, nowRel - 5);
             btn.classList.add('active');
         }
@@ -180,10 +195,11 @@
 
     function sendSync() {
         if (!startTime) return;
-        playTone(1000, 1000, 0.15); // playClickSoundからplayToneに修正
+        playTone(1000, 1000, 0.15);
         const nowRel = (Date.now() - startTime) / 1000;
         instances.push({ id: Date.now(), code: "SYNC", start: Math.max(0, nowRel - 1).toFixed(2), end: nowRel.toFixed(2) });
         updateHistoryUI();
+        saveToStorage(); // 同期ポイントも保存
         vibrate([30, 30]);
     }
 
@@ -200,7 +216,11 @@
             const delBtn = document.createElement('div');
             delBtn.className = 'swipe-delete-btn';
             delBtn.innerText = 'DEL';
-            delBtn.onclick = () => { instances = instances.filter(i => i.id !== inst.id); updateHistoryUI(); };
+            delBtn.onclick = () => { 
+                instances = instances.filter(i => i.id !== inst.id); 
+                updateHistoryUI(); 
+                saveToStorage(); // 削除時も保存
+            };
             content.ontouchstart = e => touchStartX = e.touches[0].clientX;
             content.ontouchmove = e => {
                 let moveX = e.touches[0].clientX - touchStartX;
@@ -215,11 +235,13 @@
 
     function endSession() {
         if (!startTime || instances.length === 0) return;
-        const confirmSave = confirm("セッションを終了してXMLを書き出しますか？\n(保存後は現在の記録がリセットされます)");
+        const confirmSave = confirm("セッションを終了してXMLを書き出しますか？\n(保存後にストレージがリセットされます)");
         if (!confirmSave) return;
 
-        const xml = generateXML();
-        downloadFile(xml);
+        downloadFile(generateXML());
+        
+        // --- 書き出し完了後の処理 ---
+        localStorage.removeItem('rugby_instances'); // 自動保存データを削除
         
         const archiveSection = document.getElementById('archiveSection');
         const archiveList = document.getElementById('archiveList');
