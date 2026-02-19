@@ -93,16 +93,24 @@
 
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-    // 起動時にストレージから未書き出しデータを復元
+    // 起動時の復元処理
     window.addEventListener('load', () => {
-        const savedData = localStorage.getItem('rugby_instances');
-        if (savedData) {
-            instances = JSON.parse(savedData);
+        const savedInstances = localStorage.getItem('rugby_instances');
+        if (savedInstances) {
+            instances = JSON.parse(savedInstances);
             updateHistoryUI();
+        }
+
+        const savedStartTime = localStorage.getItem('rugby_startTime');
+        if (savedStartTime) {
+            startTime = parseInt(savedStartTime);
+            document.getElementById('startBtn').innerText = "REC ON";
+            document.getElementById('startBtn').classList.add('active');
+            timerInterval = setInterval(updateTimer, 100);
+            if ('wakeLock' in navigator) navigator.wakeLock.request('screen').then(lock => wakeLock = lock);
         }
     });
 
-    // データをストレージに一時保存する関数
     function saveToStorage() {
         localStorage.setItem('rugby_instances', JSON.stringify(instances));
     }
@@ -153,6 +161,8 @@
     function startSession() {
         if (startTime) return;
         startTime = Date.now();
+        localStorage.setItem('rugby_startTime', startTime.toString());
+        
         document.getElementById('startBtn').innerText = "REC ON";
         document.getElementById('startBtn').classList.add('active');
         timerInterval = setInterval(updateTimer, 100);
@@ -162,6 +172,7 @@
     }
 
     function updateTimer() {
+        if (!startTime) return;
         const diff = (Date.now() - startTime) / 1000;
         const mins = Math.floor(diff / 60).toString().padStart(2, '0');
         const secs = (diff % 60).toFixed(1).padStart(4, '0');
@@ -184,7 +195,7 @@
             delete activeTags[id];
             btn.classList.remove('active');
             updateHistoryUI();
-            saveToStorage(); // 変更時に保存
+            saveToStorage();
         } else {
             playTone(440, 880, 0.1);
             activeTags[id] = Math.max(0, nowRel - 5);
@@ -199,7 +210,7 @@
         const nowRel = (Date.now() - startTime) / 1000;
         instances.push({ id: Date.now(), code: "SYNC", start: Math.max(0, nowRel - 1).toFixed(2), end: nowRel.toFixed(2) });
         updateHistoryUI();
-        saveToStorage(); // 同期ポイントも保存
+        saveToStorage();
         vibrate([30, 30]);
     }
 
@@ -219,7 +230,7 @@
             delBtn.onclick = () => { 
                 instances = instances.filter(i => i.id !== inst.id); 
                 updateHistoryUI(); 
-                saveToStorage(); // 削除時も保存
+                saveToStorage();
             };
             content.ontouchstart = e => touchStartX = e.touches[0].clientX;
             content.ontouchmove = e => {
@@ -235,13 +246,13 @@
 
     function endSession() {
         if (!startTime || instances.length === 0) return;
-        const confirmSave = confirm("セッションを終了してXMLを書き出しますか？\n(保存後にストレージがリセットされます)");
+        const confirmSave = confirm("セッションを終了してXMLを書き出しますか？");
         if (!confirmSave) return;
 
         downloadFile(generateXML());
         
-        // --- 書き出し完了後の処理 ---
-        localStorage.removeItem('rugby_instances'); // 自動保存データを削除
+        localStorage.removeItem('rugby_instances');
+        localStorage.removeItem('rugby_startTime');
         
         const archiveSection = document.getElementById('archiveSection');
         const archiveList = document.getElementById('archiveList');
