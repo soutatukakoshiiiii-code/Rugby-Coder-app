@@ -28,6 +28,7 @@
         
         #timer { font-size: 32px; font-weight: 700; margin: 5px 0; color: var(--md-sys-color-primary); }
 
+        /* グリッドレイアウト: 8個配置用に調整 */
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; margin-bottom: 15px; }
         .tag-btn { height: 90px; border-radius: 20px; border: none; background-color: var(--md-sys-color-secondary-container); color: var(--md-sys-color-on-secondary-container); font-size: 24px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; }
         .tag-btn.active { background-color: #ff9f0a; color: black; box-shadow: 0 0 15px rgba(255, 159, 10, 0.4); }
@@ -64,6 +65,8 @@
         <button id="btn-4" class="tag-btn" onclick="handleTagClick(4)">4</button>
         <button id="btn-5" class="tag-btn" onclick="handleTagClick(5)">5</button>
         <button id="btn-6" class="tag-btn" onclick="handleTagClick(6)">6</button>
+        <button id="btn-7" class="tag-btn" onclick="handleTagClick(7)">7</button>
+        <button id="btn-8" class="tag-btn" onclick="handleTagClick(8)">8</button>
     </div>
 
     <div class="history-container">
@@ -93,7 +96,6 @@
 
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-    // 起動時の復元処理
     window.addEventListener('load', () => {
         const savedInstances = localStorage.getItem('rugby_instances');
         if (savedInstances) {
