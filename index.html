@@ -28,13 +28,13 @@
         
         #timer { font-size: 32px; font-weight: 700; margin: 5px 0; color: var(--md-sys-color-primary); }
 
-        /* グリッドレイアウト: 8個配置用に調整 */
+        /* グリッドレイアウト: 10個配置用に調整（スクロールを考慮） */
         .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; margin-bottom: 15px; }
-        .tag-btn { height: 90px; border-radius: 20px; border: none; background-color: var(--md-sys-color-secondary-container); color: var(--md-sys-color-on-secondary-container); font-size: 24px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; }
+        .tag-btn { height: 80px; border-radius: 20px; border: none; background-color: var(--md-sys-color-secondary-container); color: var(--md-sys-color-on-secondary-container); font-size: 24px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; }
         .tag-btn.active { background-color: #ff9f0a; color: black; box-shadow: 0 0 15px rgba(255, 159, 10, 0.4); }
         .tag-btn.editing { border: 2px dashed #ff453a; opacity: 0.8; }
 
-        .history-container { width: 100%; background: #2c2c2e; border-radius: 15px; padding: 10px; margin-bottom: 15px; max-height: 180px; overflow-y: auto; }
+        .history-container { width: 100%; background: #2c2c2e; border-radius: 15px; padding: 10px; margin-bottom: 15px; max-height: 150px; overflow-y: auto; }
         .section-title { font-size: 13px; margin-bottom: 8px; font-weight: 700; border-bottom: 1px solid #444; padding-bottom: 4px; color: #aaa; }
         
         .swipe-item-wrapper { position: relative; overflow: hidden; border-bottom: 1px solid #333; margin-bottom: 2px; border-radius: 8px; }
@@ -67,6 +67,8 @@
         <button id="btn-6" class="tag-btn" onclick="handleTagClick(6)">6</button>
         <button id="btn-7" class="tag-btn" onclick="handleTagClick(7)">7</button>
         <button id="btn-8" class="tag-btn" onclick="handleTagClick(8)">8</button>
+        <button id="btn-9" class="tag-btn" onclick="handleTagClick(9)">9</button>
+        <button id="btn-10" class="tag-btn" onclick="handleTagClick(10)">10</button>
     </div>
 
     <div class="history-container">
